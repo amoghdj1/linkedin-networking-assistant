@@ -3,30 +3,54 @@ import Contacts from "./pages/Contacts";
 import Dashboard from "./pages/Dashboard";
 import About from "./pages/About";
 import Pricing from "./pages/Pricing";
+import Login from "./pages/Login";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "./firebase-config";
+import "./styles.css";
 
 function App() {
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      setUser(user);
+    });
+    return () => unsubscribe();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col">
-      <nav className="bg-indigo-600 text-white p-4 flex gap-6 shadow-md">
-        <div className="text-2xl font-bold">LinkedIn Assistant</div>
-        <div className="flex gap-4 ml-auto">
+    <div className="app-container">
+      <nav className="navbar">
+        <div className="brand">LinkedIn Assistant</div>
+        <div className="nav-links">
           <Link to="/">Dashboard</Link>
           <Link to="/contacts">Contacts</Link>
           <Link to="/about">About</Link>
           <Link to="/pricing">Pricing</Link>
+          {user ? (
+            <button onClick={() => auth.signOut()} className="logout-btn">
+              Logout
+            </button>
+          ) : (
+            <Link to="/login" className="login-btn">
+              Login
+            </Link>
+          )}
         </div>
       </nav>
 
-      <div className="p-6 flex-grow">
+      <div className="content">
         <Routes>
           <Route path="/" element={<Dashboard />} />
-          <Route path="/contacts" element={<Contacts />} />
+          <Route path="/contacts" element={user ? <Contacts /> : <Login />} />
           <Route path="/about" element={<About />} />
           <Route path="/pricing" element={<Pricing />} />
+          <Route path="/login" element={<Login />} />
         </Routes>
       </div>
 
-      <footer className="bg-gray-800 text-white text-center p-4 mt-auto">
+      <footer className="footer">
         &copy; 2025 LinkedIn Assistant. All Rights Reserved.
       </footer>
     </div>
